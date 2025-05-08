@@ -1,0 +1,184 @@
+import pandas as pd
+import numpy as np
+from sklearn.preprocessing import MinMaxScaler
+import matplotlib.pyplot as plt
+df = pd.read_csv('sample_stock_data.csv')
+data = df['Close'].values.reshape(-1, 1)
+df.head()
+# Shape of the dataset
+print("Shape:", df.shape)
+# Column names
+print("Columns:", df.columns.tolist())
+# Data types and non-null values
+df.info()
+# Summary statistics for numeric features
+df.describe()
+# Check for missing values
+print(df.isnull().sum())
+# Check for duplicates
+print("Duplicate rows:", df.duplicated().sum())
+import seaborn as sns
+import matplotlib.pyplot as plt
+# Check if 'G3' column exists in the DataFrame
+if 'G3' in df.columns:
+    # Distribution of final grades
+    sns.histplot(df['G3'], kde=True)
+    plt.title('Distribution of Final Grade (G3)')
+    plt.xlabel('Final Grade')
+    plt.show()
+else:
+    print("Column 'G3' not found in the DataFrame.")
+    print("Available columns:", df.columns.tolist())  # Print available columns for debugging
+
+
+# Check if 'studytime' and 'G3' columns exist before creating boxplot
+if 'studytime' in df.columns and 'G3' in df.columns:
+    # Relationship between study time and final grade
+    sns.boxplot(x='studytime', y='G3', data=df)
+    plt.title('Study Time vs Final Grade')
+    plt.show()
+else:
+    print("Column 'studytime' or 'G3' not found in the DataFrame.")
+    print("Available columns:", df.columns.tolist())  # Print available columns for debugging
+    plt.figure(figsize=(12, 6))
+plt.plot(df['Date'], df['Close'], label='Close Price', color='blue')
+plt.plot(df['Date'], df['Open'], label='Open Price', color='green')
+plt.title('Stock Price Movement')
+plt.xlabel('Date')
+plt.ylabel('Price')
+plt.xticks(rotation=45)
+plt.legend()
+plt.tight_layout()
+plt.show()
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Assuming df is already loaded from your stock CSV
+sns.histplot(df['Close'], kde=True, color='skyblue')
+plt.title('Distribution of Closing Price')
+plt.xlabel('Close Price')
+plt.ylabel('Frequency')
+plt.show()
+sns.boxplot(x=pd.qcut(df['Volume'], q=4), y='Close', data=df)
+plt.title('Volume Quartiles vs Closing Price')
+plt.xlabel('Volume Range (Quartiles)')
+plt.ylabel('Close Price')
+plt.xticks(rotation=45)
+plt.show()
+sns.scatterplot(x='Open', y='Close', data=df, color='purple')
+plt.title('Open Price vs Close Price')
+plt.xlabel('Open Price')
+plt.ylabel('Close Price')
+plt.show()
+# Load dataset
+import pandas as pd
+df = pd.read_csv('sample_stock_data.csv')
+
+# Define target variable
+target = 'Close'
+
+# Define features (exclude target column)
+features = df.columns.drop(target)
+
+print("Target:", target)
+print("Features:", features.tolist())
+# Identify categorical columns
+categorical_cols = df.select_dtypes(include=['object']).columns
+print("Categorical Columns:", categorical_cols.tolist())
+df_encoded = pd.get_dummies(df, drop_first=True)
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+
+
+
+# Drop 'Date' if not using it, or convert to datetime features separately
+df = df.drop(columns=['Date'])
+
+# Define target and features
+target = 'Close'
+X = df.drop(columns=[target])
+y = df[target]
+
+# Standardize feature values
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error, r2_score
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+# Train model
+model = LinearRegression()
+model.fit(X_train, y_train)
+# Predict
+y_pred = model.predict(X_test)
+print("MSE:", mean_squared_error(y_test, y_pred))
+print("R² Score:", r2_score(y_test, y_pred))# Sample input for a new stock data point
+new_stock = {
+    'Open': 156.50,
+    'High': 158.20,
+    'Low': 155.70,
+    'Volume': 48500000
+}
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+
+# Convert to DataFrame
+new_data = pd.DataFrame([new_stock])
+
+# Scale it using the same scaler used during training
+new_data_scaled = scaler.transform(new_data)  # `scaler` should already be fitted
+
+# Predict
+predicted_close = model.predict(new_data_scaled)  # `model` should already be trained
+print("Predicted Close Price:", predicted_close[0])
+# Predict the closing price for new scaled input
+predicted_close = model.predict(new_data_scaled)
+
+# Print result
+print("📈 Predicted Closing Stock Price:", round(predicted_close[0], 2))
+!pip install gradio
+import gradio as gr
+import pandas as pd
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LinearRegression
+
+# Load and prepare the dataset
+df = pd.read_csv('sample_stock_data.csv')  # Replace with your file
+df = df.drop(columns=['Date'])  # Drop date column if present
+X = df.drop(columns=['Close'])
+y = df['Close']
+
+# Scale and train model
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+model = LinearRegression()
+model.fit(X_scaled, y)
+
+# Gradio prediction function
+def predict_stock(Open, High, Low, Volume):
+    input_data = {
+        'Open': float(Open),
+        'High': float(High),
+        'Low': float(Low),
+        'Volume': float(Volume)
+    }
+    input_df = pd.DataFrame([input_data])
+    input_scaled = scaler.transform(input_df)
+    prediction = model.predict(input_scaled)
+    return round(prediction[0], 2)
+    iface = gr.Interface(
+    fn=predict_stock,
+    inputs=[
+        gr.Number(label="Open"),
+        gr.Number(label="High"),
+        gr.Number(label="Low"),
+        gr.Number(label="Volume")
+    ],
+    outputs=gr.Text(label="Predicted Close Price"),
+    title="Stock Price Predictor",
+    description="Enter stock data to predict closing price using AI."
+)
+
+iface.launch()
